@@ -24,7 +24,7 @@ export declare class PlayerBetLogsService {
     getTransactionLogs(params: TransactionLogsParams): Promise<{
         success: boolean;
         roundId: string;
-        gameApiLogs: TransactionLogItem[];
+        lcTransactionLogs: TransactionLogItem[];
         platformLogs: TransactionLogItem[];
     }>;
     getGameLogs(params: GameLogsParams): Promise<{

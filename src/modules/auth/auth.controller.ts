@@ -34,12 +34,11 @@ export class AuthController {
       success: true,
       api: '/api/auth/session',
       authenticated: true,
-      idleTimeoutMinutes: 20,
+      idleTimeoutMinutes: 60,   // ⬅️ UPDATED FROM 20 TO 60
       user: session.user,
       sessionStore: this.authService.getSessionStoreKind(),
     };
   }
-
 
   @Public()
   @Post('login')

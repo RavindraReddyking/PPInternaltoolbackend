@@ -12,8 +12,11 @@ export declare class AuditLogService {
     constructor(config: ConfigService);
     private decodeUserFromRequest;
     private getIp;
+    private rotateIfNeeded;
+    cleanAnonymousLogs(): number;
     record(action: PartialAuditLogEntry): AuditLogEntry;
     capture(request: Request | undefined, action: Omit<PartialAuditLogEntry, 'actorEmail' | 'actorName'>): AuditLogEntry;
     list(limit?: number): AuditLogEntry[];
+    getAllLogs(): AuditLogEntry[];
 }
 export {};

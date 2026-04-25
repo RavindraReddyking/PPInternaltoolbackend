@@ -65,7 +65,7 @@ export class PlayerBetLogsRepository {
 
     const res = await axios.post(process.env.KIBANA_URL!, body, {
       headers: this.headers(),
-      timeout: 30000,
+      timeout: 65000,
     });
 
     return res.data?.hits?.hits?.map((x: any) => x._source) || [];

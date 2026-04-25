@@ -18,9 +18,22 @@ let CasinoService = class CasinoService {
     }
     async getDetails(casinoId) {
         const result = await this.repository.getCasinoDetails(casinoId);
+        const main = result.recordsets[0]?.[0] || null;
+        const shared = result.recordsets[1] || [];
         return {
             success: true,
             api: 'casinodetails',
+            data: {
+                casino: main,
+                shared_envs: shared,
+            },
+        };
+    }
+    async getLCEnabledTables(casinoId) {
+        const result = await this.repository.getLCEnabledTables(casinoId);
+        return {
+            success: true,
+            api: 'lc-enabled-tables',
             count: result.recordset.length,
             data: result.recordset,
         };

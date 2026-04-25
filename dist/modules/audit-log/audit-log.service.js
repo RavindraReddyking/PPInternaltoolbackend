@@ -23,26 +23,66 @@ let AuditLogService = class AuditLogService {
         this.cookieName = this.config.get('COOKIE_NAME', 'JSESSIONID');
     }
     decodeUserFromRequest(request) {
-        const enrichedUser = request
-            ?.authUser;
+        const enrichedUser = request?.authUser;
         if (enrichedUser?.email) {
             return {
                 email: String(enrichedUser.email),
                 name: String(enrichedUser.name ?? enrichedUser.email),
             };
         }
-        const cookieValue = request?.signedCookies?.[this.cookieName] ?? request?.cookies?.[this.cookieName];
-        if (!cookieValue)
-            return null;
         return null;
     }
     getIp(request) {
-        return (request?.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+        return (request?.headers['x-forwarded-for']
+            ?.split(',')[0]
+            ?.trim() ||
             request?.ip ||
             request?.socket?.remoteAddress ||
             '');
     }
+    rotateIfNeeded() {
+        const maxSize = 5 * 1024 * 1024;
+        if (!fs.existsSync(this.filePath))
+            return;
+        const stats = fs.statSync(this.filePath);
+        if (stats.size < maxSize)
+            return;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const rotated = `${this.filePath}.${timestamp}`;
+        fs.renameSync(this.filePath, rotated);
+        const dir = path.dirname(this.filePath);
+        const rotatedFiles = fs
+            .readdirSync(dir)
+            .filter((f) => f.startsWith('audit-log.jsonl.') && !f.endsWith('.jsonl'));
+        if (rotatedFiles.length > 100) {
+            const toDelete = rotatedFiles.sort().slice(0, rotatedFiles.length - 100);
+            for (const file of toDelete) {
+                fs.unlinkSync(path.join(dir, file));
+            }
+        }
+    }
+    cleanAnonymousLogs() {
+        if (!fs.existsSync(this.filePath))
+            return 0;
+        const lines = fs
+            .readFileSync(this.filePath, 'utf8')
+            .split('\n')
+            .map((line) => line.trim())
+            .filter(Boolean);
+        const filtered = lines.filter((line) => {
+            try {
+                const entry = JSON.parse(line);
+                return entry.actorEmail !== 'anonymous';
+            }
+            catch {
+                return false;
+            }
+        });
+        fs.writeFileSync(this.filePath, filtered.join('\n') + '\n', 'utf8');
+        return lines.length - filtered.length;
+    }
     record(action) {
+        this.rotateIfNeeded();
         const entry = {
             timestamp: new Date().toISOString(),
             actorEmail: action.actorEmail ?? 'system',
@@ -58,17 +98,21 @@ let AuditLogService = class AuditLogService {
         return entry;
     }
     capture(request, action) {
+        this.rotateIfNeeded();
         const user = this.decodeUserFromRequest(request);
         const entry = {
             timestamp: new Date().toISOString(),
-            actorEmail: user?.email ?? 'anonymous',
-            actorName: user?.name ?? 'Anonymous User',
+            actorEmail: user?.email ?? action.entityValue ?? 'anonymous',
+            actorName: user?.name ?? action.entityValue ?? 'Anonymous User',
             action: action.action,
             entityType: action.entityType,
             entityValue: action.entityValue,
             status: action.status,
             sourceIp: this.getIp(request),
-            metadata: action.metadata,
+            metadata: {
+                ...action.metadata,
+                userAgent: request?.headers['user-agent'] || 'unknown',
+            },
         };
         fs.appendFileSync(this.filePath, `${JSON.stringify(entry)}\n`, 'utf8');
         return entry;
@@ -93,6 +137,28 @@ let AuditLogService = class AuditLogService {
             .filter((entry) => Boolean(entry))
             .slice(-Math.max(1, limit))
             .reverse();
+    }
+    getAllLogs() {
+        const dir = path.dirname(this.filePath);
+        const files = fs
+            .readdirSync(dir)
+            .filter((f) => f.startsWith('audit-log.jsonl'));
+        let entries = [];
+        for (const file of files) {
+            const fullPath = path.join(dir, file);
+            const lines = fs
+                .readFileSync(fullPath, 'utf8')
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(Boolean);
+            for (const line of lines) {
+                try {
+                    entries.push(JSON.parse(line));
+                }
+                catch { }
+            }
+        }
+        return entries.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
     }
 };
 exports.AuditLogService = AuditLogService;

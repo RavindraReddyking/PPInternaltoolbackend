@@ -23,12 +23,34 @@ let CasinoController = class CasinoController {
         this.auditLogService = auditLogService;
     }
     async getDetails(dto, request) {
+        if (!dto.casinoid || !dto.casinoid.trim()) {
+            return {
+                success: false,
+                message: 'casinoid is required',
+            };
+        }
         const response = await this.casinoService.getDetails(dto.casinoid);
         this.auditLogService.capture(request, {
             action: 'CASINO_CONFIG_SEARCH',
             entityType: 'casino-config',
             entityValue: dto.casinoid,
-            status: response.count ? 'SUCCESS' : 'NOT_FOUND',
+            status: response.data.casino ? 'SUCCESS' : 'NOT_FOUND',
+        });
+        return response;
+    }
+    async getLCEnabledTables(dto, request) {
+        if (!dto.casinoid || !dto.casinoid.trim()) {
+            return {
+                success: false,
+                message: 'casinoid is required',
+            };
+        }
+        const response = await this.casinoService.getLCEnabledTables(dto.casinoid);
+        this.auditLogService.capture(request, {
+            action: 'LC_ENABLED_TABLES_SEARCH',
+            entityType: 'casino-config',
+            entityValue: dto.casinoid,
+            status: response.data?.length ? 'SUCCESS' : 'NOT_FOUND',
         });
         return response;
     }
@@ -42,6 +64,14 @@ __decorate([
     __metadata("design:paramtypes", [lookup_dto_1.CasinoLookupDto, Object]),
     __metadata("design:returntype", Promise)
 ], CasinoController.prototype, "getDetails", null);
+__decorate([
+    (0, common_1.Get)('lc-enabled-tables'),
+    __param(0, (0, common_1.Query)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [lookup_dto_1.CasinoLookupDto, Object]),
+    __metadata("design:returntype", Promise)
+], CasinoController.prototype, "getLCEnabledTables", null);
 exports.CasinoController = CasinoController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [casino_service_1.CasinoService,

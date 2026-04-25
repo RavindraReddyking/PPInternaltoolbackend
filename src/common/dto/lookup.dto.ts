@@ -60,13 +60,13 @@ export class PlayerRangeDto {
   @Transform(({ value }) => trimToString(value))
   @IsString()
   @Matches(USER_RE)
-  playerid!: string;
+  UserId!: string;
 
   @IsDateString()
-  from!: string;
+  StartTime!: string;
 
   @IsDateString()
-  to!: string;
+  EndTime!: string;
 }
 
 export class CasinoLookupDto {

@@ -18,7 +18,7 @@ export declare class PlayerBetLogsController {
     getTransactionLogs(roundId?: string, from?: string, to?: string): Promise<{
         success: boolean;
         roundId: string;
-        gameApiLogs: import("./player-bet-logs.types").TransactionLogItem[];
+        lcTransactionLogs: import("./player-bet-logs.types").TransactionLogItem[];
         platformLogs: import("./player-bet-logs.types").TransactionLogItem[];
     }>;
     getGameLogs(gameId?: string, userId?: string, gameType?: string, from?: string, to?: string): Promise<{

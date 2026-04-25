@@ -12,9 +12,9 @@ export declare class RoundLookupDto {
     };
 }
 export declare class PlayerRangeDto {
-    playerid: string;
-    from: string;
-    to: string;
+    UserId: string;
+    StartTime: string;
+    EndTime: string;
 }
 export declare class CasinoLookupDto {
     casinoid: string;

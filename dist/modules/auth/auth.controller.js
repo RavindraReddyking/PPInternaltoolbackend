@@ -40,7 +40,7 @@ let AuthController = class AuthController {
             success: true,
             api: '/api/auth/session',
             authenticated: true,
-            idleTimeoutMinutes: 20,
+            idleTimeoutMinutes: 60,
             user: session.user,
             sessionStore: this.authService.getSessionStoreKind(),
         };

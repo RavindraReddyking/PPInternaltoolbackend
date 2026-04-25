@@ -1,14 +1,14 @@
-import { UserManagementRepository } from './user-management.repository';
+import { UserManagementService } from './user-management.service';
 export declare class UserManagementController {
-    private readonly repo;
-    constructor(repo: UserManagementRepository);
-    getUser(emailAddress: string): Promise<{
+    private readonly service;
+    constructor(service: UserManagementService);
+    searchUser(emailAddress?: string, userId?: string): Promise<{
         success: boolean;
-        message: string;
-        data?: undefined;
+        api: string;
+        count: number;
+        data: import("./user-management.types").PortalUserLookup[];
     } | {
         success: boolean;
-        data: import("./user-management.types").PortalUserLookup | null;
-        message?: undefined;
+        message: string;
     }>;
 }

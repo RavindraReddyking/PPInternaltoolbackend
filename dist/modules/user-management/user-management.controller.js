@@ -14,35 +14,41 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserManagementController = void 0;
 const common_1 = require("@nestjs/common");
-const user_management_repository_1 = require("./user-management.repository");
+const user_management_service_1 = require("./user-management.service");
 let UserManagementController = class UserManagementController {
-    constructor(repo) {
-        this.repo = repo;
+    constructor(service) {
+        this.service = service;
     }
-    async getUser(emailAddress) {
-        if (!emailAddress || !emailAddress.trim()) {
+    async searchUser(emailAddress, userId) {
+        if (!emailAddress && !userId) {
             return {
                 success: false,
-                message: 'emailAddress is required',
+                message: 'Either emailAddress or userId is required',
             };
         }
-        const data = await this.repo.findByEmail(emailAddress);
-        return {
-            success: true,
-            data: data || null,
-        };
+        if (emailAddress && userId) {
+            return {
+                success: false,
+                message: 'Send only one: emailAddress OR userId, not both',
+            };
+        }
+        if (emailAddress) {
+            return this.service.findByEmail(emailAddress);
+        }
+        return this.service.findByUserId(userId);
     }
 };
 exports.UserManagementController = UserManagementController;
 __decorate([
-    (0, common_1.Get)(),
+    (0, common_1.Get)('search'),
     __param(0, (0, common_1.Query)('emailAddress')),
+    __param(1, (0, common_1.Query)('userId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
-], UserManagementController.prototype, "getUser", null);
+], UserManagementController.prototype, "searchUser", null);
 exports.UserManagementController = UserManagementController = __decorate([
     (0, common_1.Controller)('user-management'),
-    __metadata("design:paramtypes", [user_management_repository_1.UserManagementRepository])
+    __metadata("design:paramtypes", [user_management_service_1.UserManagementService])
 ], UserManagementController);
 //# sourceMappingURL=user-management.controller.js.map

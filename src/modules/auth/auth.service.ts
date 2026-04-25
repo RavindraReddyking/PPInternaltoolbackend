@@ -19,8 +19,9 @@ export class AuthService {
     return this.config.get<string>('COOKIE_NAME', 'JSESSIONID');
   }
 
+  // Idle timeout from .env (default = 1 hour)
   getIdleTimeoutMs(): number {
-    return 24 * 60 * 60 * 1000;
+    return this.config.get<number>('SESSION_IDLE_TIMEOUT_MS', 3600000);
   }
 
   getSessionStoreKind(): 'memory' | 'redis' {
@@ -96,6 +97,7 @@ export class AuthService {
     return createHash('sha1').update(password, 'utf8').digest('hex').toLowerCase();
   }
 
+  // ⭐ UPDATED: Always return email + name even if DB email is null
   async validatePortalUser(email: string, password: string): Promise<SessionUser | null> {
     const identifier = (email || '').trim();
     const user = await this.authRepository.findByEmail(identifier);
@@ -110,11 +112,11 @@ export class AuthService {
       return null;
     }
 
-    const normalizedEmail = user.emailAddress.trim().toLowerCase();
+    const normalizedEmail = user.emailAddress?.trim().toLowerCase();
 
     return {
-      email: normalizedEmail,
-      name: user.screenName?.trim() || normalizedEmail,
+      email: normalizedEmail || user.screenName?.trim() || identifier,
+      name: user.screenName?.trim() || normalizedEmail || identifier,
       role: this.isAdminEmail(normalizedEmail) ? 'ADMIN' : 'USER',
     };
   }

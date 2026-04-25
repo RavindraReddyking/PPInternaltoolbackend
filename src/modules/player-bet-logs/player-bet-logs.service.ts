@@ -54,7 +54,7 @@ export class PlayerBetLogsService {
     return {
       success: true,
       roundId: params.roundId,
-      gameApiLogs: this.mapGameApiLogs(rawLogs),
+      lcTransactionLogs: this.mapGameApiLogs(rawLogs),
       platformLogs: this.mapPlatformLogs(rawLogs),
     };
   }

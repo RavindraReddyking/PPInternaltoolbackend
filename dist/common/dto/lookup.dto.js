@@ -79,15 +79,15 @@ __decorate([
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.Matches)(USER_RE),
     __metadata("design:type", String)
-], PlayerRangeDto.prototype, "playerid", void 0);
+], PlayerRangeDto.prototype, "UserId", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
-], PlayerRangeDto.prototype, "from", void 0);
+], PlayerRangeDto.prototype, "StartTime", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
-], PlayerRangeDto.prototype, "to", void 0);
+], PlayerRangeDto.prototype, "EndTime", void 0);
 class CasinoLookupDto {
 }
 exports.CasinoLookupDto = CasinoLookupDto;

@@ -1,24 +1,36 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { UserManagementRepository } from './user-management.repository';
+import { UserManagementService } from './user-management.service';
 
 @Controller('user-management')
 export class UserManagementController {
-  constructor(private readonly repo: UserManagementRepository) {}
+  constructor(private readonly service: UserManagementService) {}
 
-  @Get()
-  async getUser(@Query('emailAddress') emailAddress: string) {
-    if (!emailAddress || !emailAddress.trim()) {
+  @Get('search')
+  async searchUser(
+    @Query('emailAddress') emailAddress?: string,
+    @Query('userId') userId?: string,
+  ) {
+    // Validate: frontend must send ONLY ONE
+    if (!emailAddress && !userId) {
       return {
         success: false,
-        message: 'emailAddress is required',
+        message: 'Either emailAddress or userId is required',
       };
     }
 
-    const data = await this.repo.findByEmail(emailAddress);
+    if (emailAddress && userId) {
+      return {
+        success: false,
+        message: 'Send only one: emailAddress OR userId, not both',
+      };
+    }
 
-    return {
-      success: true,
-      data: data || null,
-    };
+    // If emailAddress provided → search by email
+    if (emailAddress) {
+      return this.service.findByEmail(emailAddress);
+    }
+
+    // If userId provided → search by userId
+    return this.service.findByUserId(userId!); // <-- FIX: userId! tells TS it's not undefined
   }
 }

@@ -6,5 +6,12 @@ export declare class CasinoController {
     private readonly casinoService;
     private readonly auditLogService;
     constructor(casinoService: CasinoService, auditLogService: AuditLogService);
-    getDetails(dto: CasinoLookupDto, request: Request): Promise<import("../../common/types/api-response").ApiListResponse<any>>;
+    getDetails(dto: CasinoLookupDto, request: Request): Promise<import("../../common/types/api-response").ApiResponse<any> | {
+        success: boolean;
+        message: string;
+    }>;
+    getLCEnabledTables(dto: CasinoLookupDto, request: Request): Promise<import("../../common/types/api-response").ApiListResponse<any> | {
+        success: boolean;
+        message: string;
+    }>;
 }

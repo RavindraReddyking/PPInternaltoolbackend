@@ -25,7 +25,7 @@ let AuthService = class AuthService {
         return this.config.get('COOKIE_NAME', 'JSESSIONID');
     }
     getIdleTimeoutMs() {
-        return 24 * 60 * 60 * 1000;
+        return this.config.get('SESSION_IDLE_TIMEOUT_MS', 3600000);
     }
     getSessionStoreKind() {
         return this.sessionStore.kind();
@@ -97,10 +97,10 @@ let AuthService = class AuthService {
         if (hashedInput !== String(user.passhash).trim().toLowerCase()) {
             return null;
         }
-        const normalizedEmail = user.emailAddress.trim().toLowerCase();
+        const normalizedEmail = user.emailAddress?.trim().toLowerCase();
         return {
-            email: normalizedEmail,
-            name: user.screenName?.trim() || normalizedEmail,
+            email: normalizedEmail || user.screenName?.trim() || identifier,
+            name: user.screenName?.trim() || normalizedEmail || identifier,
             role: this.isAdminEmail(normalizedEmail) ? 'ADMIN' : 'USER',
         };
     }

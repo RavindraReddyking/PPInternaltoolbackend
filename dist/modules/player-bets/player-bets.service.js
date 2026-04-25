@@ -17,18 +17,16 @@ let PlayerBetsService = class PlayerBetsService {
         this.repository = repository;
     }
     async getInfo(dto) {
-        const fromDate = new Date(dto.from);
-        const toDate = new Date(dto.to);
+        const fromDate = new Date(dto.StartTime);
+        const toDate = new Date(dto.EndTime);
         const diff = toDate.getTime() - fromDate.getTime();
-        if (!(diff > 0 && diff <= 60 * 60 * 1000)) {
-            throw new common_1.BadRequestException('For DB scalability, player bets range must be within 1 hour only');
-        }
-        const result = await this.repository.getPlayerBets(dto.playerid, fromDate, toDate);
+        const result = await this.repository.getPlayerBets(dto.UserId, fromDate, toDate);
+        const rows = result.recordsets[0] || [];
         return {
             success: true,
             api: 'playerbetsinfo',
-            count: result.recordset.length,
-            data: result.recordset,
+            count: rows.length,
+            data: rows,
         };
     }
 };

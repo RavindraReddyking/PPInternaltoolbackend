@@ -8,9 +8,6 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuditLogController = void 0;
 const common_1 = require("@nestjs/common");
@@ -20,28 +17,30 @@ let AuditLogController = class AuditLogController {
     constructor(auditLogService) {
         this.auditLogService = auditLogService;
     }
-    getAuditLogs(limit) {
-        const parsed = Number(limit ?? '100');
-        const safeLimit = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 500) : 100;
-        return {
-            success: true,
-            api: 'audit-logs',
-            count: safeLimit,
-            data: this.auditLogService.list(safeLimit),
-        };
+    list() {
+        return this.auditLogService.list(200);
+    }
+    getAll() {
+        return this.auditLogService.getAllLogs();
     }
 };
 exports.AuditLogController = AuditLogController;
 __decorate([
+    (0, common_1.Get)(),
     (0, roles_decorator_1.Roles)('ADMIN'),
-    (0, common_1.Get)('audit-logs'),
-    __param(0, (0, common_1.Query)('limit')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
-], AuditLogController.prototype, "getAuditLogs", null);
+], AuditLogController.prototype, "list", null);
+__decorate([
+    (0, common_1.Get)('all'),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AuditLogController.prototype, "getAll", null);
 exports.AuditLogController = AuditLogController = __decorate([
-    (0, common_1.Controller)(),
+    (0, common_1.Controller)('audit-logs'),
     __metadata("design:paramtypes", [audit_log_service_1.AuditLogService])
 ], AuditLogController);
 //# sourceMappingURL=audit-log.controller.js.map

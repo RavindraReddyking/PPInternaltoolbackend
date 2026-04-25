@@ -27,7 +27,7 @@ let PlayerBetsController = class PlayerBetsController {
         this.auditLogService.capture(request, {
             action: 'PLAYER_BETS_SEARCH',
             entityType: 'player-bets',
-            entityValue: `${dto.playerid} | ${dto.from} -> ${dto.to}`,
+            entityValue: `${dto.UserId} | ${dto.StartTime} -> ${dto.EndTime}`,
             status: 'SUCCESS',
         });
         return response;

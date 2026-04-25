@@ -11,15 +11,49 @@ export class CasinoController {
     private readonly auditLogService: AuditLogService,
   ) {}
 
+  // ============================================
+  // 1. Casino Details API
+  // ============================================
   @Get('casinodetails')
   async getDetails(@Query() dto: CasinoLookupDto, @Req() request: Request) {
+    if (!dto.casinoid || !dto.casinoid.trim()) {
+      return {
+        success: false,
+        message: 'casinoid is required',
+      };
+    }
+
     const response = await this.casinoService.getDetails(dto.casinoid);
 
     this.auditLogService.capture(request, {
       action: 'CASINO_CONFIG_SEARCH',
       entityType: 'casino-config',
       entityValue: dto.casinoid,
-      status: response.count ? 'SUCCESS' : 'NOT_FOUND',
+      status: response.data.casino ? 'SUCCESS' : 'NOT_FOUND',
+    });
+
+    return response;
+  }
+
+  // ============================================
+  // 2. LC Enabled Tables API
+  // ============================================
+  @Get('lc-enabled-tables')
+  async getLCEnabledTables(@Query() dto: CasinoLookupDto, @Req() request: Request) {
+    if (!dto.casinoid || !dto.casinoid.trim()) {
+      return {
+        success: false,
+        message: 'casinoid is required',
+      };
+    }
+
+    const response = await this.casinoService.getLCEnabledTables(dto.casinoid);
+
+    this.auditLogService.capture(request, {
+      action: 'LC_ENABLED_TABLES_SEARCH',
+      entityType: 'casino-config',
+      entityValue: dto.casinoid,
+      status: response.data?.length ? 'SUCCESS' : 'NOT_FOUND',
     });
 
     return response;
