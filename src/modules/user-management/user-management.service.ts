@@ -6,35 +6,35 @@ export class UserManagementService {
   constructor(private readonly repository: UserManagementRepository) {}
 
   async findByEmail(emailAddress: string) {
-    const row = await this.repository.findByEmail(emailAddress);
+    const rows = await this.repository.findByEmail(emailAddress);
 
     return {
       success: true,
       api: 'user-management/search',
-      count: row ? 1 : 0,
-      data: row ? [row] : [],
+      count: rows.length,
+      data: rows,
     };
   }
 
   async findByUserId(userId: string) {
-    const row = await this.repository.findByUserId(userId);
+    const rows = await this.repository.findByUserId(userId);
 
     return {
       success: true,
       api: 'user-management/search',
-      count: row ? 1 : 0,
-      data: row ? [row] : [],
+      count: rows.length,
+      data: rows,
     };
   }
 
   async findUser(emailAddress?: string, userId?: string) {
-    const row = await this.repository.findUser(emailAddress, userId);
+    const rows = await this.repository.findUser(emailAddress, userId);
 
     return {
       success: true,
       api: 'user-management/search',
-      count: row ? 1 : 0,
-      data: row ? [row] : [],
+      count: rows.length,
+      data: rows,
     };
   }
 }

@@ -7,27 +7,23 @@ import { PortalUserLookup } from './user-management.types';
 export class UserManagementRepository {
   constructor(private readonly database: DatabaseService) {}
 
-  async findUser(emailAddress?: string, userId?: string): Promise<PortalUserLookup | null> {
+  async findUser(emailAddress?: string, userId?: string): Promise<PortalUserLookup[]> {
     const schema = this.database.schema;
 
     const normalizedEmail = (emailAddress ?? '').trim();
     const normalizedUserId = (userId ?? '').trim();
 
-    // If frontend sends nothing → nothing to search
     if (!normalizedEmail && !normalizedUserId) {
-      return null;
+      return [];
     }
 
-    // TRUST frontend — use ONLY what UI sends
     const emailParam = normalizedEmail || null;
     const userIdParam = normalizedUserId || null;
 
     const result = await this.database.query(
       (request) =>
         request
-          // email_address is VARCHAR(100) in DB
           .input('EmailAddress', sql.VarChar(100), emailParam)
-          // user_id is CHAR(16) in DB
           .input('UserId', sql.Char(16), userIdParam),
       `
         EXEC ${schema}.usp_GetPlayerInfo
@@ -36,18 +32,18 @@ export class UserManagementRepository {
       `,
     );
 
-    return (result.recordset?.[0] as PortalUserLookup | undefined) ?? null;
+    return result.recordset as PortalUserLookup[] ?? [];
   }
 
-  async findByEmail(emailAddress: string): Promise<PortalUserLookup | null> {
+  async findByEmail(emailAddress: string): Promise<PortalUserLookup[]> {
     return this.findUser(emailAddress, undefined);
   }
 
-  async findByUserId(userId: string): Promise<PortalUserLookup | null> {
+  async findByUserId(userId: string): Promise<PortalUserLookup[]> {
     return this.findUser(undefined, userId);
   }
 
-  async findByUserIdAndEmail(userId: string, emailAddress: string): Promise<PortalUserLookup | null> {
+  async findByUserIdAndEmail(userId: string, emailAddress: string): Promise<PortalUserLookup[]> {
     return this.findUser(emailAddress, userId);
   }
 }
