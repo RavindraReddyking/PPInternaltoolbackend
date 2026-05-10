@@ -13,16 +13,17 @@ export type AuthPortalUser = {
  
 @Injectable()
 export class AuthRepository {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(private readonly database: DatabaseService) { }
  
   async findByEmail(emailAddress: string): Promise<AuthPortalUser | null> {
+        const schema = this.database.dbenv;
     const identifier = (emailAddress ?? '').trim();
  
     const result = await this.database.query<AuthPortalUser>(
       (request) =>
         request.input('email_address', sql.VarChar(200), identifier),
       `
-      IF OBJECT_ID('live.dbo.casinouser') IS NULL
+      IF OBJECT_ID('${schema}.casinouser') IS NULL
       BEGIN
         SELECT
           CAST(NULL AS VARCHAR(100)) AS userId,
@@ -41,7 +42,7 @@ export class AuthRepository {
         cu.casino_id AS casinoId,
         cu.passhash AS passhash,
         'FOUND' AS status
-      FROM live.dbo.casinouser cu
+      FROM ${schema}.casinouser cu WITH (NOLOCK)
       WHERE cu.email_address = @email_address;
       `,
     );

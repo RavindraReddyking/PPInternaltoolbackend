@@ -8,7 +8,10 @@ export class DatabaseService {
 
   constructor(private readonly config: ConfigService) {}
 
-  get schema(): string {
+  get dbenv(): string {
+    return this.config.get<string>('dbenv', 'prelive0.dbo');
+  }
+ get schema(): string {
     return this.config.get<string>('DB_SCHEMA', 'prelive0.dbo');
   }
 
