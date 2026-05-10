@@ -66,7 +66,7 @@ export class AuthService {
       path: '/',
       signed: true,
       maxAge: this.getIdleTimeoutMs(),
-      ...(domain ? { domain } : {}),
+      
     };
   }
 
