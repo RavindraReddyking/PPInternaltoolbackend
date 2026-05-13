@@ -34,6 +34,7 @@ export class AuthService {
 
   private getCookieSecure(): boolean {
     const value = this.config.get<string>('COOKIE_SECURE');
+
     if (typeof value === 'string' && value.trim() !== '') {
       return value.trim().toLowerCase() === 'true';
     }
@@ -48,17 +49,17 @@ export class AuthService {
 
     if (value === 'none') return 'none';
     if (value === 'strict') return 'strict';
+
     return 'lax';
   }
 
   private getCookieDomain(): string | undefined {
     const value = (this.config.get<string>('COOKIE_DOMAIN', '') || '').trim();
+
     return value || undefined;
   }
 
   private getCookieOptions(): CookieOptions {
-    const domain = this.getCookieDomain();
-
     return {
       httpOnly: true,
       sameSite: this.getCookieSameSite(),
@@ -66,40 +67,40 @@ export class AuthService {
       path: '/',
       signed: true,
       maxAge: this.getIdleTimeoutMs(),
-      
     };
   }
 
+  // Mock user for local/dev login
   getMockUser(): SessionUser {
-    const adminEmail =
-      this.getAdminEmails()[0] ||
-      this.config.get<string>('AUTH_MOCK_EMAIL', 'ravindra.munnangi@arrise.co');
+    const email = this.config.get<string>(
+      'AUTH_MOCK_EMAIL',
+      'ravindra.munnangi@arrise.co',
+    );
 
     return {
-      email: adminEmail,
-      name: this.config.get<string>('AUTH_MOCK_NAME', 'Ravindra Munnangi'),
-      role: this.isAdminEmail(adminEmail) ? 'ADMIN' : 'USER',
+      email,
+      name: this.config.get<string>(
+        'AUTH_MOCK_NAME',
+        'Ravindra Munnangi',
+      ),
+      role: 'USER',
     };
-  }
-
-  getAdminEmails(): string[] {
-    return (this.config.get<string>('AUTH_ADMIN_USERS', '') || '')
-      .split(',')
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean);
-  }
-
-  isAdminEmail(email: string): boolean {
-    return this.getAdminEmails().includes((email || '').trim().toLowerCase());
   }
 
   hashPassword(password: string): string {
-    return createHash('sha1').update(password, 'utf8').digest('hex').toLowerCase();
+    return createHash('sha1')
+      .update(password, 'utf8')
+      .digest('hex')
+      .toLowerCase();
   }
 
-  // ⭐ UPDATED: Always return email + name even if DB email is null
-  async validatePortalUser(email: string, password: string): Promise<SessionUser | null> {
+  // Validate portal user
+  async validatePortalUser(
+    email: string,
+    password: string,
+  ): Promise<SessionUser | null> {
     const identifier = (email || '').trim();
+
     const user = await this.authRepository.findByEmail(identifier);
 
     if (!user?.emailAddress || !user?.passhash) {
@@ -117,7 +118,7 @@ export class AuthService {
     return {
       email: normalizedEmail || user.screenName?.trim() || identifier,
       name: user.screenName?.trim() || normalizedEmail || identifier,
-      role: this.isAdminEmail(normalizedEmail) ? 'ADMIN' : 'USER',
+      role: 'USER',
     };
   }
 
@@ -125,19 +126,28 @@ export class AuthService {
     const cookieName = this.getCookieName();
 
     const signed = request.signedCookies?.[cookieName];
+
     if (typeof signed === 'string' && signed.trim()) {
       return signed.trim();
     }
 
     const fallback = request.cookies?.[cookieName];
-    return typeof fallback === 'string' && fallback.trim() ? fallback.trim() : null;
+
+    return typeof fallback === 'string' && fallback.trim()
+      ? fallback.trim()
+      : null;
   }
 
-  async resolveSessionFromRequest(request: Request, touch: boolean): Promise<AuthSession | null> {
+  async resolveSessionFromRequest(
+    request: Request,
+    touch: boolean,
+  ): Promise<AuthSession | null> {
     const token = this.getSignedToken(request);
+
     if (!token) return null;
 
     const session = await this.sessionStore.get(token);
+
     if (!session) return null;
 
     if (session.expiresAt <= Date.now()) {
@@ -146,7 +156,10 @@ export class AuthService {
     }
 
     if (touch) {
-      return this.sessionStore.touch(session, this.getIdleTimeoutMs());
+      return this.sessionStore.touch(
+        session,
+        this.getIdleTimeoutMs(),
+      );
     }
 
     return session;
@@ -164,39 +177,64 @@ export class AuthService {
     };
 
     await this.sessionStore.set(session);
+
     return session;
   }
 
   attachSessionCookie(response: Response, session: AuthSession) {
-    response.cookie(this.getCookieName(), session.token, this.getCookieOptions());
+    response.cookie(
+      this.getCookieName(),
+      session.token,
+      this.getCookieOptions(),
+    );
   }
 
   async clearSession(response: Response, request?: Request) {
-    const token = request ? this.getSignedToken(request) : null;
+    const token = request
+      ? this.getSignedToken(request)
+      : null;
 
     if (token) {
       await this.sessionStore.delete(token);
     }
 
-    response.clearCookie(this.getCookieName(), this.getCookieOptions());
+    response.clearCookie(
+      this.getCookieName(),
+      this.getCookieOptions(),
+    );
   }
 
   getAzureAuthorizeUrl(returnTo?: string): string {
-    const tenantId = this.config.get<string>('AZURE_TENANT_ID', '');
-    const clientId = this.config.get<string>('AZURE_CLIENT_ID', '');
-    const redirectUri = this.config.get<string>('AZURE_REDIRECT_URI', '');
+    const tenantId = this.config.get<string>(
+      'AZURE_TENANT_ID',
+      '',
+    );
+
+    const clientId = this.config.get<string>(
+      'AZURE_CLIENT_ID',
+      '',
+    );
+
+    const redirectUri = this.config.get<string>(
+      'AZURE_REDIRECT_URI',
+      '',
+    );
 
     const state = Buffer.from(
-      JSON.stringify({ returnTo: returnTo || '/home' }),
+      JSON.stringify({
+        returnTo: returnTo || '/home',
+      }),
       'utf8',
     ).toString('base64url');
 
     if (!tenantId || !clientId || !redirectUri) {
       const callbackUrl = `${this.getBackendBaseUrl()}/api/auth/azure/callback`;
+
       return `${callbackUrl}?state=${encodeURIComponent(state)}`;
     }
 
     const base = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`;
+
     const params = new URLSearchParams({
       client_id: clientId,
       response_type: 'code',
@@ -210,14 +248,19 @@ export class AuthService {
   }
 
   parseReturnTo(rawState?: string): string {
-    if (!rawState) return '/home';
+    if (!rawState) {
+      return '/home';
+    }
 
     try {
-      const decoded = JSON.parse(Buffer.from(rawState, 'base64url').toString('utf8')) as {
+      const decoded = JSON.parse(
+        Buffer.from(rawState, 'base64url').toString('utf8'),
+      ) as {
         returnTo?: unknown;
       };
 
-      return typeof decoded.returnTo === 'string' && decoded.returnTo.startsWith('/')
+      return typeof decoded.returnTo === 'string' &&
+        decoded.returnTo.startsWith('/')
         ? decoded.returnTo
         : '/home';
     } catch {
@@ -226,10 +269,14 @@ export class AuthService {
   }
 
   getFrontendBaseUrl(): string {
-    return this.config.get<string>('FRONTEND_URL', 'http://localhost:3000').replace(/\/$/, '');
+    return this.config
+      .get<string>('FRONTEND_URL', 'http://localhost:3000')
+      .replace(/\/$/, '');
   }
 
   getBackendBaseUrl(): string {
-    return this.config.get<string>('BACKEND_URL', 'http://localhost:3001').replace(/\/$/, '');
+    return this.config
+      .get<string>('BACKEND_URL', 'http://localhost:3001')
+      .replace(/\/$/, '');
   }
 }

@@ -30,11 +30,12 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<Request & { authUser?: { role?: string } }>();
     const role = request.authUser?.role;
-
+console.log(role)
     if (role && requiredRoles.includes(role as SessionUserRole)) {
       return true;
     }
-
+console.log(role)
+console.log(requiredRoles)
     throw new ForbiddenException({
       success: false,
       code: 'FORBIDDEN',

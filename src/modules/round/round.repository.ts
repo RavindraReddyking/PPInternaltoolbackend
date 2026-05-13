@@ -41,7 +41,7 @@ export class RoundRepository {
           @RoundId = @RoundId
         `
         : `
-         EXEC ${schema}.usp_GetThirdPartyTxnData
+          EXEC ${schema}.usp_GetThirdPartyTxnData
           @GameId = @GameId,
           @UserId = @UserId
         `,
@@ -67,27 +67,29 @@ export class RoundRepository {
     );
   }
 
-   async getGameDetails(params: RoundLookupParams) {
+  async getGameDetails(params: RoundLookupParams) {
     const schema = this.database.schema;
     const mode = resolveRoundLookupMode(params);
 
-    if (mode === 'RoundId') {
-      return this.database.query(
-        (request) => configureRoundLookupRequest(request, params),
-        `
+    const query =
+      mode === 'RoundId'
+        ? `
           EXEC ${schema}.usp_GetTableGameDetails
           @RoundId = @RoundId
-        `,
-      );
-    }
-
-    return this.database.query(
-      (request) => configureRoundLookupRequest(request, params),
-      `
-        EXEC ${schema}.usp_GetTableGameDetails
+        `
+        : `
+          EXEC ${schema}.usp_GetTableGameDetails
           @GameId = @GameId,
           @UserId = @UserId
-      `,
-    );
+        `;
+
+    try {
+      return await this.database.query(
+        (request) => configureRoundLookupRequest(request, params),
+        query,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 }
